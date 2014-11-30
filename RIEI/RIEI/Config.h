@@ -14,8 +14,10 @@ public:
     int downSampleThres;
     int clusterMinSize;
     int sketchSideLength;
+    int hitmapRadius;
     int angleBinNum;
     int partitionNum;
+    int candidateNum;
 
 private:
     Config();

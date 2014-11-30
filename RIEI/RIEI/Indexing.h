@@ -24,7 +24,7 @@ public:
     ~Indexing();
 
     void generateIndexing(const Task& task);
-    vector<Score> query(const Sketch& sketch);
+    vector<Score> query(const Task& task, const Sketch& sketch);
 
 private:
     vector<vector<vector<vector<Index>>>> _index;

@@ -1,3 +1,4 @@
+#include <set>
 #include <queue>
 #include <string>
 #include <cmath>
@@ -49,12 +50,6 @@ void Indexing::generateIndexing(const Task& task)
             }
         }
     }
-}
-
-vector<Score> Indexing::query(const Sketch& sketch)
-{
-    vector<Score> scores;
-    return scores;
 }
 
 vector<vector<vector<bool>>> Indexing::calcAngle(const Sketch& sketch)
@@ -115,6 +110,7 @@ vector<vector<vector<bool>>> Indexing::generateHitmap(const Sketch& sketch)
 {
     Config* config = Config::instance();
     int binNum = config->angleBinNum;
+    int radius = config->hitmapRadius;
     auto hitmap = calcAngle(sketch);
     struct Node
     {
@@ -137,7 +133,7 @@ vector<vector<vector<bool>>> Indexing::generateHitmap(const Sketch& sketch)
         {
             Node node = q.front();
             q.pop();
-            if (node.depth < 4)
+            if (node.depth < radius)
             {
                 for (int k = 0; k < 4; ++k)
                 {
@@ -159,4 +155,75 @@ vector<vector<vector<bool>>> Indexing::generateHitmap(const Sketch& sketch)
         }
     }
     return hitmap;
+}
+
+vector<Score> Indexing::query(const Task& task, const Sketch& sketch)
+{
+    Config* config = Config::instance();
+    int binNum = config->angleBinNum;
+    int sideLen = config->sketchSideLength;
+    int parNum = config->partitionNum;
+    int cddtNum = config->candidateNum;
+    vector<map<Index, double>> scoreMap;
+    Decomposer decomposer;
+    auto parts = decomposer.decompose(sketch);
+    vector<vector<vector<vector<bool>>>> hitmaps(parNum);
+    for (int p = 0; p < parNum; ++p)
+    {
+        hitmaps[p] = generateHitmap(parts[p]);
+        for (int angle = 0; angle < binNum; ++angle)
+        {
+            for (int x = 0; x < parts[p].row(); ++x)
+            {
+                for (int y = 0; y < parts[p].col(); ++y)
+                {
+                    if (hitmaps[p][angle][x][y])
+                    {
+                        for (auto index : _index[angle][x][y])
+                        {
+                            scoreMap[p][index] += 1.0;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    set<int> candidates;
+    for (int p = 0; p < parNum; ++p)
+    {
+        int count = 0;
+        for (auto score : scoreMap[p])
+        {
+            if (++count > cddtNum)
+            {
+                break;
+            }
+            candidates.insert(score.first.id);
+        }
+    }
+    vector<Score> scores;
+    for (auto candidate : candidates)
+    {
+        vector<vector<double>> score1(parNum, vector<double>(parNum, 0.0));
+        for (int p = 0; p < parNum; ++p)
+        {
+            int pixelNum = parts[p].getPositiveNum();
+            for (int q = 0; q < parNum; ++q)
+            {
+                Index index = { candidate, q };
+                score1[p][q] = scoreMap[p][index] / pixelNum;
+            }
+        }
+        vector<vector<double>> score2(parNum, vector<double>(parNum, 0.0));
+        for (int q = 0; q < parNum; ++q)
+        {
+            auto hitmap = generateHitmap(parts[p]);
+        }
+    }
+    sort(scores.begin(), scores.end());
+    while (scores.size() > cddtNum)
+    {
+        scores.pop_back();
+    }
+    return scores;
 }
