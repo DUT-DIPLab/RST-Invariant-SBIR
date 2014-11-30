@@ -19,6 +19,10 @@ public:
     int partitionNum;
     int candidateNum;
 
+    int radius;
+    int partWidth;
+    int partHeight;
+
 private:
     Config();
 };

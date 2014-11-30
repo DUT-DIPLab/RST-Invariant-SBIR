@@ -27,7 +27,7 @@ IplImage* Preprocesser::generateEdges(const char* filePath)
     IplImage* canny = nullptr;
     while (true)
     {
-        IplImage* canny = cvCreateImage(cvGetSize(image), IPL_DEPTH_8U, 1);
+        canny = cvCreateImage(cvGetSize(image), IPL_DEPTH_8U, 1);
         cvCanny(image, canny, config->cannyLow, config->cannyHigh);
         edge.initFromImage(canny);
         edge.inverse();
@@ -69,6 +69,7 @@ Sketch Preprocesser::cutOutSketch(IplImage* canny)
     Sketch sketch;
     sketch.initFromImage(resized);
     cvReleaseImage(&resized);
+    sketch.inverse();
     return sketch;
 }
 

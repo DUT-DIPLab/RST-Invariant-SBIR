@@ -2,6 +2,7 @@
 #include <queue>
 #include <string>
 #include <cmath>
+#include <cstdio>
 #include "Config.h"
 #include "Decomposer.h"
 #include "Indexing.h"
@@ -157,6 +158,48 @@ vector<vector<vector<bool>>> Indexing::generateHitmap(const Sketch& sketch)
     return hitmap;
 }
 
+vector<vector<vector<bool>>> Indexing::readHitmap(const char* filePath)
+{
+    Config* config = Config::instance();
+    int binNum = config->angleBinNum;
+    int height = config->partHeight;
+    int width = config->partWidth;
+    FILE* file = fopen(filePath, "r");
+    vector<vector<vector<bool>>> hitmap(binNum, vector<vector<bool>>(height, vector<bool>(width, false)));
+    for (int i = 0; i < binNum; ++i)
+    {
+        for (int j = 0; j < height; ++j)
+        {
+            for (int k = 0; k < width; ++k)
+            {
+                hitmap[i][j][k] = fgetc(file) == '.';
+            }
+        }
+    }
+    fclose(file);
+    return hitmap;
+}
+
+void Indexing::writeHitmap(const vector<vector<vector<bool>>>& hitmap, const char* filePath)
+{
+    Config* config = Config::instance();
+    int binNum = config->angleBinNum;
+    int height = config->partHeight;
+    int width = config->partWidth;
+    FILE* file = fopen(filePath, "w");
+    for (int i = 0; i < binNum; ++i)
+    {
+        for (int j = 0; j < height; ++j)
+        {
+            for (int k = 0; k < width; ++k)
+            {
+                fputc(hitmap[i][j][k] ? '.' : ' ', file);
+            }
+        }
+    }
+    fclose(file);
+}
+
 vector<Score> Indexing::query(const Task& task, const Sketch& sketch)
 {
     Config* config = Config::instance();
@@ -217,11 +260,11 @@ vector<Score> Indexing::query(const Task& task, const Sketch& sketch)
         vector<vector<double>> score2(parNum, vector<double>(parNum, 0.0));
         for (int q = 0; q < parNum; ++q)
         {
-            auto hitmap = generateHitmap(parts[p]);
+            //auto hitmap = generateHitmap(parts[p]);
         }
     }
     sort(scores.begin(), scores.end());
-    while (scores.size() > cddtNum)
+    while ((int)scores.size() > cddtNum)
     {
         scores.pop_back();
     }
