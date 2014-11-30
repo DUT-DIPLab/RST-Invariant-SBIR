@@ -73,6 +73,19 @@ public:
         return num;
     }
 
+    Matrix<T> crop(int top, int left, int height, int width)
+    {
+        Matrix<T> ret(height, width);
+        for (int i = 0; i < height; ++i)
+        {
+            for (int j = 0; j < width; ++j)
+            {
+                ret[i][j] = _data[i + top][j + left];
+            }
+        }
+        return ret;
+    }
+
     friend std::ostream& operator<<(std::ostream& out, Matrix<T>& mat)
     {
         for (int i = 0; i < mat.row(); ++i)

@@ -8,5 +8,6 @@ public:
 
     void generateSketch(const char* input, const char* output);
     void cutOutSketch(const char* input, const char* output);
+    void sketchThinning(const char* input, const char* output);
 };
 
