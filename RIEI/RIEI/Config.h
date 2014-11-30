@@ -14,6 +14,7 @@ public:
     int downSampleThres;
     int clusterMinSize;
     int sketchSideLength;
+    int angleBinNum;
     int partitionNum;
 
 private:

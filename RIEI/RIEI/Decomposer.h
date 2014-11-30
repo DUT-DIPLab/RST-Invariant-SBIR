@@ -2,6 +2,7 @@
 
 #include <vector>
 #include "Sketch.h"
+using namespace std;
 
 class Decomposer
 {
@@ -9,6 +10,6 @@ public:
     Decomposer();
     ~Decomposer();
 
-    std::vector<Sketch<>> decompose(Sketch<>& sketch);
+    vector<Sketch> decompose(const Sketch& sketch) const;
 };
 

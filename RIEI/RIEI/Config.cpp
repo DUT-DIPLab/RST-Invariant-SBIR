@@ -46,6 +46,10 @@ void Config::read(const char* fileName)
         {
             fscanf(file, "%d", &sketchSideLength);
         }
+        else if (strcmp(buffer, "angle_bin_num") == 0)
+        {
+            fscanf(file, "%d", &angleBinNum);
+        }
         else if (strcmp(buffer, "partition_num") == 0)
         {
             fscanf(file, "%d", &partitionNum);

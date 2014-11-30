@@ -2,7 +2,7 @@
 #include "Config.h"
 #include "Preprocesser.h"
 #include "Decomposer.h"
-using namespace std;
+
 const double PI = acos(-1.0);
 
 Decomposer::Decomposer()
@@ -13,7 +13,7 @@ Decomposer::~Decomposer()
 {
 }
 
-vector<Sketch<>> Decomposer::decompose(Sketch<>& sketch)
+vector<Sketch> Decomposer::decompose(const Sketch& sketch) const
 {
     Config* config = Config::instance();
     int radius = config->sketchSideLength >> 1;
@@ -22,7 +22,7 @@ vector<Sketch<>> Decomposer::decompose(Sketch<>& sketch)
     int width = (halfWidth << 1) + 1;
     int height = (int)(radius * cos(halfTheta));
     int center = radius;
-    vector<Sketch<>> parts(8, Sketch<>(height, width));
+    vector<Sketch> parts(8, Sketch(height, width));
     Preprocesser processer;
     for (int k = 0; k < config->partitionNum; ++k)
     {

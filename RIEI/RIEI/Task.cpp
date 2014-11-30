@@ -1,6 +1,5 @@
 #include <fstream>
 #include "Task.h"
-using namespace std;
 
 Task::Task()
 {

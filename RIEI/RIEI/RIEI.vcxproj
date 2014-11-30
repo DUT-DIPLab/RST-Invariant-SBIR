@@ -86,15 +86,19 @@
   <ItemGroup>
     <ClCompile Include="Config.cpp" />
     <ClCompile Include="Decomposer.cpp" />
+    <ClCompile Include="Indexing.cpp" />
     <ClCompile Include="Preprocesser.cpp" />
     <ClCompile Include="RIEI.cpp" />
+    <ClCompile Include="Sketch.cpp" />
+    <ClCompile Include="Task.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Config.h" />
     <ClInclude Include="Decomposer.h" />
-    <ClInclude Include="Matrix.h" />
+    <ClInclude Include="Indexing.h" />
     <ClInclude Include="Preprocesser.h" />
     <ClInclude Include="Sketch.h" />
+    <ClInclude Include="Task.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

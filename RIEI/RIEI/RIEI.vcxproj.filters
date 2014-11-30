@@ -27,11 +27,17 @@
     <ClCompile Include="Decomposer.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="Task.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Indexing.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Sketch.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Matrix.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="Sketch.h">
       <Filter>头文件</Filter>
     </ClInclude>
@@ -42,6 +48,12 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="Decomposer.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Task.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Indexing.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

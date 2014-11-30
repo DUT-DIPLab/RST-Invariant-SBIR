@@ -1,9 +1,7 @@
 #include <algorithm>
-#include <opencv2/opencv.hpp>
 #include "Config.h"
 #include "Sketch.h"
 #include "Preprocesser.h"
-using namespace std;
 
 const int STEP_X[] = {-1, -1, 0, 1, 1, 1, 0, -1};
 const int STEP_Y[] = {0, 1, 1, 1, 0, -1, -1, -1};
@@ -16,7 +14,7 @@ Preprocesser::~Preprocesser()
 {
 }
 
-Sketch<> Preprocesser::preprocess(const char* filePath)
+Sketch Preprocesser::preprocess(const char* filePath)
 {
     return cutOutSketch(generateEdges(filePath));
 }
@@ -25,7 +23,7 @@ IplImage* Preprocesser::generateEdges(const char* filePath)
 {
     Config* config = Config::instance();
     IplImage* image = cvLoadImage(filePath, CV_LOAD_IMAGE_GRAYSCALE);
-    Sketch<> edge;
+    Sketch edge;
     IplImage* canny = nullptr;
     while (true)
     {
@@ -49,7 +47,7 @@ IplImage* Preprocesser::generateEdges(const char* filePath)
     return canny;
 }
 
-Sketch<> Preprocesser::cutOutSketch(IplImage* canny)
+Sketch Preprocesser::cutOutSketch(IplImage* canny)
 {
     Config* config = Config::instance();
     int length = min(canny->width, canny->height);
@@ -68,13 +66,13 @@ Sketch<> Preprocesser::cutOutSketch(IplImage* canny)
     IplImage* resized = cvCreateImage(cvSize(config->sketchSideLength, config->sketchSideLength), IPL_DEPTH_8U, 1);
     cvResize(cropped, resized, CV_INTER_CUBIC);
     cvReleaseImage(&cropped);
-    Sketch<> sketch;
+    Sketch sketch;
     sketch.initFromImage(resized);
     cvReleaseImage(&resized);
     return sketch;
 }
 
-void Preprocesser::sketchThinning(Sketch<>& sketch)
+void Preprocesser::sketchThinning(Sketch& sketch)
 {
     for (int i = 0; i < sketch.row(); ++i)
     {

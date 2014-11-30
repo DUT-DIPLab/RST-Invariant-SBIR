@@ -7,7 +7,7 @@ int main(int argc, char* argv[])
     Config* config = Config::instance();
     config->read("default.config");
     Decomposer decomposer;
-    Sketch<> sketch("1_2.jpg");
+    Sketch sketch("1_2.jpg");
     auto parts = decomposer.decompose(sketch);
     parts[0].write("1_4_0.jpg");
     parts[1].write("1_4_1.jpg");

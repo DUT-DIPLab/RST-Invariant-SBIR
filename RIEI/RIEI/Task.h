@@ -2,11 +2,12 @@
 
 #include <vector>
 #include <string>
+using namespace std;
 
 struct ImageInfo
 {
-    std::string name;
-    std::string path;
+    string name;
+    string path;
 };
 
 struct Task
@@ -20,7 +21,7 @@ public:
     int datasetNum;
     int queryNum;
     bool queryIsSketch;
-    std::vector<ImageInfo> datasets;
-    std::vector<ImageInfo> queries;
+    vector<ImageInfo> datasets;
+    vector<ImageInfo> queries;
 };
 

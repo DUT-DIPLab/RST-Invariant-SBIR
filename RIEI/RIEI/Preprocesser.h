@@ -1,5 +1,6 @@
 #pragma once
 
+#include <opencv2/opencv.hpp>
 #include "Sketch.h"
 
 class Preprocesser
@@ -8,11 +9,11 @@ public:
     Preprocesser();
     ~Preprocesser();
 
-    Sketch<> preprocess(const char* filePath);
+    Sketch preprocess(const char* filePath);
 
     IplImage* generateEdges(const char* filePath);
-    Sketch<> cutOutSketch(IplImage* canny);
+    Sketch cutOutSketch(IplImage* canny);
 
-    void sketchThinning(Sketch<>& sketch);
+    void sketchThinning(Sketch& sketch);
 };
 
