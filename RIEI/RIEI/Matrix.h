@@ -70,7 +70,7 @@ public:
                 num += _data[i][j] > 0;
             }
         }
-        return 0;
+        return num;
     }
 
     friend std::ostream& operator<<(std::ostream& out, Matrix<T>& mat)

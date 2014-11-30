@@ -18,12 +18,24 @@
     <ClCompile Include="RIEI.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="Preprocesser.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Config.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Matrix.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="Sketch.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Preprocesser.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Config.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

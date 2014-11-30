@@ -23,6 +23,12 @@ public:
     void read(const char* fileName)
     {
         IplImage* image = cvLoadImage(fileName, CV_LOAD_IMAGE_GRAYSCALE);
+        initFromImage(image);
+        cvReleaseImage(&image);
+    }
+
+    void initFromImage(IplImage* image)
+    {
         init(image->height, image->width);
         for (int y = 0; y < image->height; ++y)
         {
@@ -31,12 +37,11 @@ public:
                 _data[y][x] = ((unsigned char)((image->imageData + y * image->widthStep)[x])) < 128;
             }
         }
-        cvReleaseImage(&image);
     }
 
     void write(const char* fileName)
     {
-        IplImage* image = cvCreateImage(cv::Size(col(), row()), 8, 1);
+        IplImage* image = cvCreateImage(cvSize(col(), row()), IPL_DEPTH_8U, 1);
         for (int y = 0; y < image->height; ++y)
         {
             for (int x = 0; x < image->width; ++x)
@@ -46,5 +51,16 @@ public:
         }
         cvSaveImage(fileName, image);
         cvReleaseImage(&image);
+    }
+
+    void inverse()
+    {
+        for (int y = 0; y < row(); ++y)
+        {
+            for (int x = 0; x < col(); ++x)
+            {
+                _data[y][x] = !_data[y][x];
+            }
+        }
     }
 };
