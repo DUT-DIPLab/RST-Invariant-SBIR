@@ -16,11 +16,17 @@ Preprocesser::~Preprocesser()
 {
 }
 
-void Preprocesser::generateSketch(const char* input, const char* output)
+Sketch<> Preprocesser::preprocess(const char* filePath)
+{
+    return cutOutSketch(generateEdges(filePath));
+}
+
+IplImage* Preprocesser::generateEdges(const char* filePath)
 {
     Config* config = Config::instance();
-    IplImage* image = cvLoadImage(input, CV_LOAD_IMAGE_GRAYSCALE);
+    IplImage* image = cvLoadImage(filePath, CV_LOAD_IMAGE_GRAYSCALE);
     Sketch<> edge;
+    IplImage* canny = nullptr;
     while (true)
     {
         IplImage* canny = cvCreateImage(cvGetSize(image), IPL_DEPTH_8U, 1);
@@ -30,7 +36,6 @@ void Preprocesser::generateSketch(const char* input, const char* output)
         if (edge.getPositiveNum() < config->downSampleThres)
         {
             cvReleaseImage(&image);
-            cvReleaseImage(&canny);
             break;
         }
         cvReleaseImage(&canny);
@@ -41,38 +46,36 @@ void Preprocesser::generateSketch(const char* input, const char* output)
         cvReleaseImage(&image);
         image = resize;
     }
-    edge.write(output);
+    return canny;
 }
 
-void Preprocesser::cutOutSketch(const char* input, const char* output)
+Sketch<> Preprocesser::cutOutSketch(IplImage* canny)
 {
     Config* config = Config::instance();
-    IplImage* image = cvLoadImage(input, CV_LOAD_IMAGE_GRAYSCALE);
-    int length = min(image->width, image->height);
-    int shift = abs(image->width - image->height) >> 1;
-    if (image->width > image->height)
+    int length = min(canny->width, canny->height);
+    int shift = abs(canny->width - canny->height) >> 1;
+    if (canny->width > canny->height)
     {
-        cvSetImageROI(image, cvRect(shift, 0, length, length));
+        cvSetImageROI(canny, cvRect(shift, 0, length, length));
     }
     else
     {
-        cvSetImageROI(image, cvRect(0, shift, length, length));
+        cvSetImageROI(canny, cvRect(0, shift, length, length));
     }
-    IplImage* cropped = cvCreateImage(cvGetSize(image), IPL_DEPTH_8U, 1);
-    cvCopy(image, cropped);
-    cvReleaseImage(&image);
-    IplImage* resized = cvCreateImage(cvSize(config->sketchWidth, config->sketchHeight), IPL_DEPTH_8U, 1);
+    IplImage* cropped = cvCreateImage(cvGetSize(canny), IPL_DEPTH_8U, 1);
+    cvCopy(canny, cropped);
+    cvReleaseImage(&canny);
+    IplImage* resized = cvCreateImage(cvSize(config->sketchSideLength, config->sketchSideLength), IPL_DEPTH_8U, 1);
     cvResize(cropped, resized, CV_INTER_CUBIC);
     cvReleaseImage(&cropped);
     Sketch<> sketch;
     sketch.initFromImage(resized);
     cvReleaseImage(&resized);
-    sketch.write(output);
+    return sketch;
 }
 
-void Preprocesser::sketchThinning(const char* input, const char* output)
+void Preprocesser::sketchThinning(Sketch<>& sketch)
 {
-    Sketch<> sketch(input);
     for (int i = 0; i < sketch.row(); ++i)
     {
         sketch[i][0] = sketch[i][sketch.col() - 1] = false;
@@ -134,5 +137,4 @@ void Preprocesser::sketchThinning(const char* input, const char* output)
         }
         oddIter = !oddIter;
     }
-    sketch.write(output);
 }

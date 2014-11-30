@@ -42,13 +42,13 @@ void Config::read(const char* fileName)
         {
             fscanf(file, "%d", &clusterMinSize);
         }
-        else if (strcmp(buffer, "sketch_width") == 0)
+        else if (strcmp(buffer, "sketch_side_length") == 0)
         {
-            fscanf(file, "%d", &sketchWidth);
+            fscanf(file, "%d", &sketchSideLength);
         }
-        else if (strcmp(buffer, "sketch_height") == 0)
+        else if (strcmp(buffer, "partition_num") == 0)
         {
-            fscanf(file, "%d", &sketchHeight);
+            fscanf(file, "%d", &partitionNum);
         }
     }
     fclose(file);

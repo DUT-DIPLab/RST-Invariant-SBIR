@@ -16,6 +16,24 @@ public:
         clear();
     }
 
+    Matrix<T>& operator=(const Matrix<T>& mat)
+    {
+        init(mat.row(), mat.col());
+        for (int i = 0; i < row(); ++i)
+        {
+            for (int j = 0; j < col(); ++j)
+            {
+                _data[i][j] = mat[i][j];
+            }
+        }
+        return *this;
+    }
+
+    Matrix(const Matrix<T>& mat) : _row(0), _col(0), _data(nullptr)
+    {
+        *this = mat;
+    }
+
     void init(int row, int col)
     {
         clear();
@@ -67,7 +85,10 @@ public:
         {
             for (int j = 0; j < col(); ++j)
             {
-                num += _data[i][j] > 0;
+                if (_data[i][j] > 0)
+                {
+                    ++num;
+                }
             }
         }
         return num;

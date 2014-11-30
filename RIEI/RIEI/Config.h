@@ -13,8 +13,8 @@ public:
     double downSampleRatio;
     int downSampleThres;
     int clusterMinSize;
-    int sketchWidth;
-    int sketchHeight;
+    int sketchSideLength;
+    int partitionNum;
 
 private:
     Config();
