@@ -19,7 +19,7 @@ Worker::~Worker()
 void Worker::saveProgress(Progress progress)
 {
     FILE* file = fopen("progress", "w");
-    fprintf(file, "%d", progress);
+    //fprintf(file, "%d", progress);
     fclose(file);
 }
 
@@ -105,7 +105,7 @@ void Worker::work(Task& task, int threadNum)
         {
             CreateThread(0, 0, hitmapEntry, this, 0, 0);
         }
-        decompose();
+        hitmap();
         while (_shift)
         {
             Sleep(100);
@@ -183,7 +183,19 @@ void Worker::edgeDetect()
         ++_deltNum;
         printf("\rE Thread: %d Progress: %d / %d", _threadNum, _deltNum, totalNum);
     }
-    if (!_task->queryIsSketch)
+    if (_task->queryIsSketch)
+    {
+        len = _task->queryNum;
+        for (int i = shift; i < len; i += _threadNum)
+        {
+            /*Sketch sketch = preprocesser.cutOutSketch(_task->queries[i].path.c_str());
+            sprintf(buffer, "m_sketches/%s.jpg", _task->queries[i].name.c_str());
+            sketch.write(buffer);
+            ++_deltNum;
+            printf("\rE Thread: %d Progress: %d / %d", _threadNum, _deltNum, totalNum);*/
+        }
+    }
+    else
     {
         len = _task->queryNum;
         for (int i = shift; i < len; i += _threadNum)
@@ -429,7 +441,7 @@ void Worker::writeIndex()
         {
             for (int c = 0; c < width; ++c)
             {
-                int num = _index[a][r][c].size();
+                int num = (int)_index[a][r][c].size();
                 fprintf(file, "%d", num);
                 for (auto index : _index[a][r][c])
                 {
