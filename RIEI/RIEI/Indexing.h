@@ -7,15 +7,30 @@ using namespace std;
 
 struct Index
 {
-    int id;
-    int part;
+    int val;
+
+    Index(int id = 0, int part = 0)
+    {
+        val = (id << 5) + part;
+    }
+
+    inline int id() const
+    {
+        return val >> 5;
+    }
+
+    inline int part() const
+    {
+        return val & ((1 << 5) - 1);
+    }
+
     bool operator <(const Index& index) const
     {
-        if (id == index.id)
+        if (id() == index.id())
         {
-            return part < index.part;
+            return part() < index.part();
         }
-        return id < index.id;
+        return id() < index.id();
     }
 };
 
@@ -39,12 +54,9 @@ public:
     vector<vector<vector<bool>>> readHitmap(const char* filePath);
     void writeHitmap(const vector<vector<vector<bool>>>& hitmap, const char* filePath);
 
-    void generateIndexing(const Task& task);
-    vector<Score> query(const Task& task, const Sketch& sketch);
+    vector<Score> query(const Task& task, const vector<vector<vector<vector<Index>>>>& indexs, const Sketch& sketch);
 
 private:
-    vector<vector<vector<vector<Index>>>> _index;
-
     vector<vector<vector<bool>>> calcAngle(const Sketch& sketch);
 };
 

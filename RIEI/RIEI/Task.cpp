@@ -23,6 +23,6 @@ void Task::read(const char* filePath)
     queries = vector<ImageInfo>(queryNum);
     for (int i = 0; i < queryNum; ++i)
     {
-        fin >> queries[i].path >> queries[i].name;
+        fin >> queries[i].name >> queries[i].path;
     }
 }

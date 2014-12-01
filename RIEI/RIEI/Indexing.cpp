@@ -19,40 +19,6 @@ Indexing::~Indexing()
 {
 }
 
-void Indexing::generateIndexing(const Task& task)
-{
-    Config* config = Config::instance();
-    int binNum = config->angleBinNum;
-    int sideLen = config->sketchSideLength;
-    int parNum = config->partitionNum;
-    _index = vector<vector<vector<vector<Index>>>>(binNum, vector<vector<vector<Index>>>(
-        sideLen, vector<vector<Index>>(
-        sideLen, vector<Index>())));
-    Decomposer decomposer;
-    for (int i = 0; i < task.datasetNum; ++i)
-    {
-        Sketch sketch(task.datasets[i].path.c_str());
-        auto parts = decomposer.decompose(sketch);
-        for (int j = 0; j < parNum; ++j)
-        {
-            auto hitmap = generateHitmap(parts[j]);
-            for (int angle = 0; angle < binNum; ++angle)
-            {
-                for (int r = 0; r < sideLen; ++r)
-                {
-                    for (int c = 0; c < sideLen; ++c)
-                    {
-                        if (hitmap[angle][r][c])
-                        {
-                            _index[angle][r][c].push_back({i, j});
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
 vector<vector<vector<bool>>> Indexing::calcAngle(const Sketch& sketch)
 {
     Config* config = Config::instance();
@@ -78,9 +44,9 @@ vector<vector<vector<bool>>> Indexing::calcAngle(const Sketch& sketch)
         for (int j = 0; j < sketch.col(); ++j)
         {
             vector<double> hist(binNum, 0.0);
-            for (int x = -2; x <= 2; ++x)
+            for (int x = -4; x <= 4; ++x)
             {
-                for (int y = -2; y <= 2; ++y)
+                for (int y = -4; y <= 4; ++y)
                 {
                     int tx = i + x;
                     int ty = j + y;
@@ -101,7 +67,10 @@ vector<vector<vector<bool>>> Indexing::calcAngle(const Sketch& sketch)
                     index = k;
                 }
             }
-            angle[index][i][j] = true;
+            if (hist[index] > 1.0)
+            {
+                angle[index][i][j] = true;
+            }
         }
     }
     return angle;
@@ -200,29 +169,28 @@ void Indexing::writeHitmap(const vector<vector<vector<bool>>>& hitmap, const cha
     fclose(file);
 }
 
-vector<Score> Indexing::query(const Task& task, const Sketch& sketch)
+vector<Score> Indexing::query(const Task& task, const vector<vector<vector<vector<Index>>>>& indexs, const Sketch& sketch)
 {
     Config* config = Config::instance();
     int binNum = config->angleBinNum;
     int sideLen = config->sketchSideLength;
     int parNum = config->partitionNum;
     int cddtNum = config->candidateNum;
-    vector<map<Index, double>> scoreMap;
+    vector<map<Index, double>> scoreMap(parNum);
     Decomposer decomposer;
     auto parts = decomposer.decompose(sketch);
-    vector<vector<vector<vector<bool>>>> hitmaps(parNum);
     for (int p = 0; p < parNum; ++p)
     {
-        hitmaps[p] = generateHitmap(parts[p]);
-        for (int angle = 0; angle < binNum; ++angle)
+        auto angle = calcAngle(parts[p]);
+        for (int a = 0; a < binNum; ++a)
         {
-            for (int x = 0; x < parts[p].row(); ++x)
+            for (int i = 0; i < parts[p].row(); ++i)
             {
-                for (int y = 0; y < parts[p].col(); ++y)
+                for (int j = 0; j < parts[p].col(); ++j)
                 {
-                    if (hitmaps[p][angle][x][y])
+                    if (angle[a][i][j])
                     {
-                        for (auto index : _index[angle][x][y])
+                        for (auto index : indexs[a][i][j])
                         {
                             scoreMap[p][index] += 1.0;
                         }
@@ -241,10 +209,31 @@ vector<Score> Indexing::query(const Task& task, const Sketch& sketch)
             {
                 break;
             }
-            candidates.insert(score.first.id);
+            candidates.insert(score.first.id());
+        }
+    }
+    vector<vector<vector<vector<Index>>>> queryIndex(config->angleBinNum, vector<vector<vector<Index>>>(
+                                                     config->partHeight, vector<vector<Index>>(
+                                                     config->partWidth, vector<Index>())));
+    for (int p = 0; p < parNum; ++p)
+    {
+        auto hitmap = generateHitmap(parts[p]);
+        for (int a = 0; a < binNum; ++a)
+        {
+            for (int i = 0; i < parts[p].row(); ++i)
+            {
+                for (int j = 0; j < parts[p].col(); ++j)
+                {
+                    if (hitmap[a][i][j])
+                    {
+                        queryIndex[a][i][j].push_back(Index(0, p));
+                    }
+                }
+            }
         }
     }
     vector<Score> scores;
+    char buffer[1024];
     for (auto candidate : candidates)
     {
         vector<vector<double>> score1(parNum, vector<double>(parNum, 0.0));
@@ -253,15 +242,70 @@ vector<Score> Indexing::query(const Task& task, const Sketch& sketch)
             int pixelNum = parts[p].getPositiveNum();
             for (int q = 0; q < parNum; ++q)
             {
-                Index index = { candidate, q };
-                score1[p][q] = scoreMap[p][index] / pixelNum;
+                score1[p][q] = scoreMap[p][{ candidate, q }] / pixelNum;
             }
         }
         vector<vector<double>> score2(parNum, vector<double>(parNum, 0.0));
         for (int q = 0; q < parNum; ++q)
         {
-            //auto hitmap = generateHitmap(parts[p]);
+            sprintf(buffer, "m_parts/%s_%d.jpg", task.datasets[candidate].name.c_str(), q);
+            Sketch sketch(buffer);
+            int pixelNum = sketch.getPositiveNum();
+            auto angle = calcAngle(sketch);
+            for (int a = 0; a < binNum; ++a)
+            {
+                for (int i = 0; i < sketch.row(); ++i)
+                {
+                    for (int j = 0; j < sketch.col(); ++j)
+                    {
+                        if (angle[a][i][j])
+                        {
+                            for (auto index : queryIndex[a][i][j])
+                            {
+                                score2[index.part()][q] += 1.0;
+                            }
+                        }
+                    }
+                }
+            }
+            for (int p = 0; p < parNum; ++p)
+            {
+                score2[p][q] /= pixelNum;
+            }
         }
+        vector<vector<double>> score(parNum, vector<double>(parNum, 0.0));
+        for (int i = 0; i < parNum; ++i)
+        {
+            for (int j = 0; j < parNum; ++j)
+            {
+                score[i][j] = score1[i][j] * score2[i][j];
+            }
+        }
+        Score localScore;
+        localScore.index = Index(candidate, 0);
+        localScore.score = 0.0;
+        for (int i = 0; i < parNum; ++i)
+        {
+            double tempScore = 0.0;
+            for (int j = 0; j < parNum; ++j)
+            {
+                tempScore += score[i][(i + j) % parNum] + 1e-4;
+            }
+            if (tempScore > localScore.score)
+            {
+                localScore.score = tempScore;
+            }
+            tempScore = 0.0;
+            for (int j = 0; j < parNum; ++j)
+            {
+                tempScore += score[i][(i - j + parNum) % parNum] + 1e-4;
+            }
+            if (tempScore > localScore.score)
+            {
+                localScore.score = tempScore;
+            }
+        }
+        scores.push_back(localScore);
     }
     sort(scores.begin(), scores.end());
     while ((int)scores.size() > cddtNum)

@@ -1,0 +1,6 @@
+m_*
+*.exe
+*.task
+*.hitmap
+*.result
+progress
