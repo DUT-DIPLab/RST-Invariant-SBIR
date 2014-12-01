@@ -237,7 +237,6 @@ void Worker::decompose()
         for (int j = 0; j < parNum; ++j)
         {
             sprintf(buffer, "m_parts/%s_%d.jpg", _task->datasets[i].name.c_str(), j);
-            processer.sketchThinning(parts[j]);
             parts[j].write(buffer);
         }
         ++_deltNum;
