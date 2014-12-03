@@ -13,6 +13,86 @@ const double PI = acos(-1.0);
 const int STEP_X[] = { 0, 1, 0, -1 };
 const int STEP_Y[] = { 1, 0, -1, 0 };
 
+const bool MASKS[7][9][9] = {
+    { 
+        { 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+        { 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+        { 0, 0, 1, 1, 1, 1, 1, 0, 0 },
+        { 0, 0, 1, 1, 1, 1, 1, 0, 0 },
+        { 0, 0, 1, 1, 1, 1, 1, 0, 0 },
+        { 0, 0, 1, 1, 1, 1, 1, 0, 0 },
+        { 0, 0, 1, 1, 1, 1, 1, 0, 0 },
+        { 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+        { 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    },
+    {
+        { 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+        { 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+        { 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+        { 1, 1, 1, 1, 1, 1, 1, 1, 1 },
+        { 1, 1, 1, 1, 1, 1, 1, 1, 1 },
+        { 1, 1, 1, 1, 1, 1, 1, 1, 1 },
+        { 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+        { 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+        { 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    },
+    {
+        { 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+        { 0, 0, 0, 0, 0, 0, 0, 1, 1 },
+        { 0, 0, 0, 0, 0, 1, 1, 1, 1 },
+        { 0, 0, 0, 0, 1, 1, 1, 1, 1 },
+        { 0, 0, 1, 1, 1, 1, 1, 0, 0 },
+        { 1, 1, 1, 1, 1, 0, 0, 0, 0 },
+        { 1, 1, 1, 1, 0, 0, 0, 0, 0 },
+        { 1, 1, 0, 0, 0, 0, 0, 0, 0 },
+        { 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    },
+    {
+        { 0, 0, 0, 0, 0, 1, 1, 1, 0 },
+        { 0, 0, 0, 0, 0, 1, 1, 1, 0 },
+        { 0, 0, 0, 0, 1, 1, 1, 0, 0 },
+        { 0, 0, 0, 0, 1, 1, 1, 0, 0 },
+        { 0, 0, 0, 1, 1, 1, 0, 0, 0 },
+        { 0, 0, 1, 1, 1, 0, 0, 0, 0 },
+        { 0, 0, 1, 1, 1, 0, 0, 0, 0 },
+        { 0, 1, 1, 1, 0, 0, 0, 0, 0 },
+        { 0, 1, 1, 1, 0, 0, 0, 0, 0 },
+    },
+    {
+        { 0, 0, 0, 1, 1, 1, 0, 0, 0 },
+        { 0, 0, 0, 1, 1, 1, 0, 0, 0 },
+        { 0, 0, 0, 1, 1, 1, 0, 0, 0 },
+        { 0, 0, 0, 1, 1, 1, 0, 0, 0 },
+        { 0, 0, 0, 1, 1, 1, 0, 0, 0 },
+        { 0, 0, 0, 1, 1, 1, 0, 0, 0 },
+        { 0, 0, 0, 1, 1, 1, 0, 0, 0 },
+        { 0, 0, 0, 1, 1, 1, 0, 0, 0 },
+        { 0, 0, 0, 1, 1, 1, 0, 0, 0 },
+    },
+    {
+        { 0, 1, 1, 1, 0, 0, 0, 0, 0 },
+        { 0, 1, 1, 1, 0, 0, 0, 0, 0 },
+        { 0, 0, 1, 1, 1, 0, 0, 0, 0 },
+        { 0, 0, 1, 1, 1, 0, 0, 0, 0 },
+        { 0, 0, 0, 1, 1, 1, 0, 0, 0 },
+        { 0, 0, 0, 0, 1, 1, 1, 0, 0 },
+        { 0, 0, 0, 0, 1, 1, 1, 0, 0 },
+        { 0, 0, 0, 0, 0, 1, 1, 1, 0 },
+        { 0, 0, 0, 0, 0, 1, 1, 1, 0 },
+    },
+    {
+        { 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+        { 1, 1, 0, 0, 0, 0, 0, 0, 0 },
+        { 1, 1, 1, 1, 0, 0, 0, 0, 0 },
+        { 1, 1, 1, 1, 1, 0, 0, 0, 0 },
+        { 0, 0, 1, 1, 1, 1, 1, 0, 0 },
+        { 0, 0, 0, 0, 1, 1, 1, 1, 1 },
+        { 0, 0, 0, 0, 0, 1, 1, 1, 1 },
+        { 0, 0, 0, 0, 0, 0, 0, 1, 1 },
+        { 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    }
+};
+
 Indexing::Indexing()
 {
 }
@@ -25,56 +105,48 @@ vector<vector<vector<bool>>> Indexing::calcAngle(const Sketch& sketch)
 {
     Config* config = Config::instance();
     int binNum = config->angleBinNum;
-    double scale = binNum / PI;
-    vector<vector<double>> mag(sketch.row(), vector<double>(sketch.col()));
-    vector<vector<int>> ang(sketch.row(), vector<int>(sketch.col()));
-    for (int i = 0; i < sketch.row(); ++i)
-    {
-        for (int j = 0; j < sketch.col(); ++j)
-        {
-            double gx = sketch.safeGet(i - 1, j + 1) + 2 * sketch.safeGet(i, j + 1) + sketch.safeGet(i + 1, j + 1) -
-                        sketch.safeGet(i - 1, j - 1) - 2 * sketch.safeGet(i, j - 1) - sketch.safeGet(i + 1, j - 1);
-            double gy = sketch.safeGet(i + 1, j - 1) + 2 * sketch.safeGet(i + 1, j) + sketch.safeGet(i + 1, j + 1) -
-                        sketch.safeGet(i - 1, j - 1) - 2 * sketch.safeGet(i - 1, j) - sketch.safeGet(i - 1, j + 1);
-            mag[i][j] = sqrt(gx * gx + gy * gy);
-            ang[i][j] = ((int)(atan2(gy, gx) * scale) + (binNum << 1)) % binNum;
-        }
-    }
+    int height = config->partHeight;
+    int width = config->partWidth;
     vector<vector<vector<bool>>> angle(binNum, vector<vector<bool>>(sketch.row(), vector<bool>(sketch.col(), false)));
-    for (int i = 0; i < sketch.row(); ++i)
+    for (int i = 0; i < height; ++i)
     {
-        for (int j = 0; j < sketch.col(); ++j)
+        for (int j = 0; j < width; ++j)
         {
             if (sketch[i][j])
             {
-                vector<double> hist(binNum, 0.0);
-                for (int x = -4; x <= 4; ++x)
+                int index = 0;
+                int maxInter = 0;
+                for (int k = 0; k < binNum; ++k)
                 {
-                    for (int y = -4; y <= 4; ++y)
+                    int inter = 0;
+                    for (int x = 0; x < 9; ++x)
                     {
-                        int tx = i + x;
-                        int ty = j + y;
-                        if (0 <= tx && tx < sketch.row())
+                        for (int y = 0; y < 9; ++y)
                         {
-                            if (0 <= ty && ty < sketch.col())
+                            if (MASKS[k][x][y])
                             {
-                                hist[ang[tx][ty]] += mag[tx][ty];
+                                int tx = i + x - 4;
+                                int ty = j + y - 4;
+                                if (0 <= tx && tx < height)
+                                {
+                                    if (0 <= ty && ty < width)
+                                    {
+                                        if (sketch[tx][ty])
+                                        {
+                                            ++inter;
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
-                }
-                int index = 0;
-                for (int k = 1; k < binNum; ++k)
-                {
-                    if (hist[k] > hist[index])
+                    if (inter > maxInter)
                     {
                         index = k;
+                        maxInter = inter;
                     }
                 }
-                if (hist[index] > 1.0)
-                {
-                    angle[index][i][j] = true;
-                }
+                angle[index][i][j] = true;
             }
         }
     }
@@ -312,7 +384,8 @@ vector<Score> Indexing::query(const Task& task, const vector<vector<vector<vecto
             double tempScore = 0.0;
             for (int j = 0; j < parNum; ++j)
             {
-                tempScore += score[j][(i + j) % parNum];
+                //tempScore += score[j][(i + j) % parNum];
+                tempScore += score[j][j];
             }
             if (tempScore > localScore.score)
             {
@@ -321,7 +394,8 @@ vector<Score> Indexing::query(const Task& task, const vector<vector<vector<vecto
             tempScore = 0.0;
             for (int j = 0; j < parNum; ++j)
             {
-                tempScore += score[j][(i - j + parNum) % parNum];
+                //tempScore += score[j][(i - j + parNum) % parNum];
+                tempScore += score[j][(- j + parNum) % parNum];
             }
             if (tempScore > localScore.score)
             {

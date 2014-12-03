@@ -4,6 +4,7 @@
 
 Config::Config()
 {
+    angleBinNum = 7;
 }
 
 Config* Config::instance()

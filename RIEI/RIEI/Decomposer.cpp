@@ -36,7 +36,7 @@ vector<Sketch> Decomposer::decompose(const Sketch& sketch) const
                 double ang = atan2(y, x) - (k << 1) * halfTheta;
                 double ry = center - rad * sin(ang);
                 double rx = center + rad * cos(ang);
-                parts[k][height - y - 1][x + halfWidth] = sketch.bilinearInterpolate(ry, rx) > 0.5;
+                parts[k][height - y - 1][x + halfWidth] = sketch.bilinearInterpolate(ry, rx) > 0.1;
             }
         }
         processer.sketchThinning(parts[k]);
