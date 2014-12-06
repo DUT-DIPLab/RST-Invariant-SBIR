@@ -4,6 +4,7 @@
 #include "Sketch.h"
 #include "Preprocesser.h"
 #include "Decomposer.h"
+#include "Hashing.h"
 #include "Indexing.h"
 #include "Worker.h"
 
@@ -18,9 +19,9 @@ Worker::~Worker()
 
 void Worker::saveProgress(Progress progress)
 {
-    FILE* file = fopen("progress", "w");
+    //FILE* file = fopen("progress", "w");
     //fprintf(file, "%d", progress);
-    fclose(file);
+    //fclose(file);
 }
 
 Worker::Progress Worker::loadProgress()
@@ -48,9 +49,9 @@ void Worker::work(Task& task, int threadNum)
     int parNum = config->partitionNum;
     config->radius = config->sketchSideLength >> 1;
     double halfTheta = acos(-1.0) / parNum;
-    int halfWidth = (int)(config->radius * sin(halfTheta));
-    config->partWidth = (halfWidth << 1) + 1;
-    config->partHeight = (int)(config->radius * cos(halfTheta));
+    int halfWidth = ((int)(config->radius * sin(halfTheta)) + 9) / 10 * 10;
+    config->partWidth = halfWidth << 1;
+    config->partHeight = ((int)(config->radius * cos(halfTheta)) + 19) / 20 * 20;
 
     Progress progress = loadProgress();
     _task = &task;
@@ -58,9 +59,9 @@ void Worker::work(Task& task, int threadNum)
     _threadNum = threadNum;
 
     printf("Detect Edges: \n");
-    system("mkdir m_sketches");
     if (progress < PROGRESS_EDGE)
     {
+        system("mkdir m_sketches");
         _deltNum = 0;
         for (int i = 1; i < threadNum; ++i)
         {
@@ -76,9 +77,9 @@ void Worker::work(Task& task, int threadNum)
     }
 
     printf("Decompose Sketches: \n");
-    system("mkdir m_parts");
     if (progress < PROGRESS_DECOMPOSE)
     {
+        system("mkdir m_parts");
         _deltNum = 0;
         for (int i = 1; i < threadNum; ++i)
         {
@@ -93,31 +94,28 @@ void Worker::work(Task& task, int threadNum)
         printf("\n");
     }
 
-    printf("Generate Hitmaps: \n");
-    system("mkdir m_hitmaps"); 
-#ifdef _DEBUG
-    system("mkdir m_hitmaps_view");
-#endif
-    if (progress < PROGRESS_HITMAP)
+    printf("Generate Hashing: \n");
+    if (progress < PROGRESS_HASHING)
     {
+        system("mkdir m_hashes"); 
         _deltNum = 0;
         for (int i = 1; i < threadNum; ++i)
         {
-            CreateThread(0, 0, hitmapEntry, this, 0, 0);
+            CreateThread(0, 0, hashingEntry, this, 0, 0);
         }
-        hitmap();
+        hashing();
         while (_shift)
         {
             Sleep(100);
         }
-        saveProgress(PROGRESS_HITMAP);
+        saveProgress(PROGRESS_HASHING);
         printf("\n");
     }
 
-    printf("Generate Index: \n");
-    system("mkdir m_index");
+    /*printf("Generate Index: \n");
     if (progress < PROGRESS_INDEX)
     {
+        system("mkdir m_index");
         _deltNum = 0;
         _index = vector<vector<vector<vector<Index>>>>(config->angleBinNum, vector<vector<vector<Index>>>(
                                                        config->partHeight, vector<vector<Index>>(
@@ -138,12 +136,12 @@ void Worker::work(Task& task, int threadNum)
     else
     {
         readIndex();
-    }
+    }*/
 
     printf("Query: \n");
-    system("mkdir m_results");
     if (progress < PROGRESS_QUERY)
     {
+        system("mkdir m_results");
         _deltNum = 0;
         for (int i = 1; i < threadNum; ++i)
         {
@@ -247,13 +245,13 @@ void Worker::decompose()
     ReleaseMutex(_shiftMutex);
 }
 
-DWORD WINAPI Worker::hitmapEntry(LPVOID self)
+DWORD WINAPI Worker::hashingEntry(LPVOID self)
 {
-    reinterpret_cast<Worker*>(self)->hitmap();
+    reinterpret_cast<Worker*>(self)->hashing();
     return 0;
 }
 
-void Worker::hitmap()
+void Worker::hashing()
 {
     Config* config = Config::instance();
     int parNum = config->partitionNum;
@@ -262,30 +260,16 @@ void Worker::hitmap()
     WaitForSingleObject(_shiftMutex, INFINITE);
     int shift = _shift++;
     ReleaseMutex(_shiftMutex);
-    Indexing indexing;
+    Hashing hashing;
     for (int i = shift; i < len; i += _threadNum)
     {
         for (int j = 0; j < parNum; ++j)
         {
             sprintf(buffer, "m_parts/%s_%d.jpg", _task->datasets[i].name.c_str(), j);
             Sketch sketch(buffer);
-            auto hitmap = indexing.generateHitmap(sketch);
-            sprintf(buffer, "m_hitmaps/%s_%d.hitmap", _task->datasets[i].name.c_str(), j);
-            indexing.writeHitmap(hitmap, buffer);
-#ifdef _DEBUG
-            for (int a = 0; a < 6; ++a)
-            {
-                for (int r = 0; r < sketch.row(); ++r)
-                {
-                    for (int c = 0; c < sketch.col(); ++c)
-                    {
-                        sketch[r][c] = hitmap[a][r][c];
-                    }
-                }
-                sprintf(buffer, "m_hitmaps_view/%s_%d_%d.jpg", _task->datasets[i].name.c_str(), j, a);
-                sketch.write(buffer);
-            }
-#endif
+            auto bits = hashing.hashing(sketch);
+            sprintf(buffer, "m_hashes/%s_%d.hash", _task->datasets[i].name.c_str(), j);
+            hashing.write(buffer, bits);
         }
         ++_deltNum;
         printf("\rH Thread: %d Progress: %d / %d", _threadNum, _deltNum, len);
@@ -304,56 +288,17 @@ DWORD WINAPI Worker::indexEntry(LPVOID self)
 void Worker::index()
 {
     Config* config = Config::instance();
-    int parNum = config->partitionNum;
-    int binNum = config->angleBinNum;
-    int height = config->partHeight;
-    int width = config->partWidth;
     int len = _task->datasetNum;
     char buffer[1024];
     WaitForSingleObject(_shiftMutex, INFINITE);
     int shift = _shift++;
     ReleaseMutex(_shiftMutex);
-    auto localIndex = vector<vector<vector<vector<Index>>>>(binNum, vector<vector<vector<Index>>>(
-                                                            height, vector<vector<Index>>(
-                                                            width, vector<Index>())));
-    Indexing indexing;
     for (int i = shift; i < len; i += _threadNum)
     {
-        for (int j = 0; j < parNum; ++j)
-        {
-            sprintf(buffer, "m_hitmaps/%s_%d.hitmap", _task->datasets[i].name.c_str(), j);
-            auto hitmap = indexing.readHitmap(buffer);
-            for (int a = 0; a < binNum; ++a)
-            {
-                for (int r = 0; r < height; ++r)
-                {
-                    for (int c = 0; c < width; ++c)
-                    {
-                        if (hitmap[a][r][c])
-                        {
-                            localIndex[a][r][c].push_back(Index(i, j));
-                        }
-                    }
-                }
-            }
-        }
         ++_deltNum;
         printf("\rI Thread: %d Progress: %d / %d", _threadNum, _deltNum, len);
     }
     WaitForSingleObject(_shiftMutex, INFINITE);
-    for (int a = 0; a < binNum; ++a)
-    {
-        for (int r = 0; r < height; ++r)
-        {
-            for (int c = 0; c < width; ++c)
-            {
-                for (auto index : localIndex[a][r][c])
-                {
-                    _index[a][r][c].push_back(index);
-                }
-            }
-        }
-    }
     --_shift;
     ReleaseMutex(_shiftMutex);
 }
@@ -373,17 +318,49 @@ void Worker::query()
     WaitForSingleObject(_shiftMutex, INFINITE);
     int shift = _shift++;
     ReleaseMutex(_shiftMutex);
-    Indexing index;
+    Hashing hashing;
+    vector<vector<vector<vector<char>>>> hashes(_task->datasetNum, vector<vector<vector<char>>>(parNum));
+    for (int i = 0; i < _task->datasetNum; ++i)
+    {
+        for (int j = 0; j < parNum; ++j)
+        {
+            sprintf(buffer, "m_hashes/%s_%d.hash", _task->datasets[i].name.c_str(), j);
+            hashes[i][j] = hashing.read(buffer);
+        }
+    }
+    Decomposer decomposer;
     for (int i = shift; i < len; i += _threadNum)
     {
         sprintf(buffer, "m_sketches/%s.jpg", _task->queries[i].name.c_str());
         Sketch sketch(buffer);
-        auto scores = index.query(*_task, _index, sketch);
+        auto parts = decomposer.decompose(sketch);
+        vector<vector<vector<char>>> queryHash(parNum);
+        for (int j = 0; j < parNum; ++j)
+        {
+            queryHash[j] = hashing.hashing(parts[j]);
+        }
+        vector<Score> scores;
+        for (int j = 0; j < _task->datasetNum; ++j)
+        {
+            int dist = 0;
+            for (int k = 0; k < parNum; ++k)
+            {
+                for (int l = 0; l < queryHash[k].size(); ++l)
+                {
+                    dist += config->shParam.bitNum() - config->shParam.hammingDist(queryHash[k][l], hashes[j][k][l]);
+                }
+            }
+            Score score;
+            score.index.id = j;
+            score.score = dist;
+            scores.push_back(score);
+        }
+        sort(scores.begin(), scores.end());
         sprintf(buffer, "m_results/%s.result", _task->queries[i].name.c_str());
         FILE* file = fopen(buffer, "w");
-        for (auto score : scores)
+        for (int i = 0; i < scores.size(); ++i)
         {
-            fprintf(file, "%s\n", _task->datasets[score.index.id()].name.c_str());
+            fprintf(file, "%s\n", _task->datasets[scores[i].index.id].name);
         }
         fclose(file);
         ++_deltNum;
@@ -392,63 +369,4 @@ void Worker::query()
     WaitForSingleObject(_shiftMutex, INFINITE);
     --_shift;
     ReleaseMutex(_shiftMutex);
-}
-
-void Worker::readIndex()
-{
-    Config* config = Config::instance();
-    int binNum = config->angleBinNum;
-    int height = config->partHeight;
-    int width = config->partWidth;
-    char buffer[1024];
-    sprintf(buffer, "m_index/index");
-    FILE* file = fopen(buffer, "r");
-    _index = vector<vector<vector<vector<Index>>>>(config->angleBinNum, vector<vector<vector<Index>>>(
-                                                   config->partHeight, vector<vector<Index>>(
-                                                   config->partWidth, vector<Index>())));
-    for (int a = 0; a < binNum; ++a)
-    {
-        for (int r = 0; r < height; ++r)
-        {
-            for (int c = 0; c < width; ++c)
-            {
-                int num, id, part;
-                fscanf(file, "%d", &num);
-                for (int i = 0; i < num; ++i)
-                {
-                    fscanf(file, "%d%d", &id, &part);
-                    _index[a][r][c].push_back(Index(id, part));
-                }
-            }
-        }
-    }
-    fclose(file);
-}
-
-void Worker::writeIndex()
-{
-    Config* config = Config::instance();
-    int binNum = config->angleBinNum;
-    int height = config->partHeight;
-    int width = config->partWidth;
-    char buffer[1024];
-    sprintf(buffer, "m_index/index");
-    FILE* file = fopen(buffer, "w");
-    for (int a = 0; a < binNum; ++a)
-    {
-        for (int r = 0; r < height; ++r)
-        {
-            for (int c = 0; c < width; ++c)
-            {
-                int num = (int)_index[a][r][c].size();
-                fprintf(file, "%d", num);
-                for (auto index : _index[a][r][c])
-                {
-                    fprintf(file, " %d %d", index.id(), index.part());
-                }
-                fprintf(file, "\n");
-            }
-        }
-    }
-    fclose(file);
 }

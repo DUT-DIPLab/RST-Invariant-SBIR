@@ -1,6 +1,7 @@
 function Path = test_phi(Config)
     FeatureConfig.TaskPath = Config.TaskPath;
-    FeatureConfig.ImageLength = Config.ImageLength;
+    FeatureConfig.Height = Config.Height;
+    FeatureConfig.Width = Config.Width;
     FeatureConfig.PatchLength = Config.PatchLength;
     FeatureConfig.ShiftLength = Config.ShiftLength;
     FeatureConfig.BinNum = Config.BinNum;

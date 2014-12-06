@@ -13,7 +13,5 @@ public:
 
     IplImage* generateEdges(const char* filePath);
     Sketch cutOutSketch(IplImage* canny);
-
-    void sketchThinning(Sketch& sketch);
 };
 

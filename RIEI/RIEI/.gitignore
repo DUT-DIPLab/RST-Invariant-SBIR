@@ -3,4 +3,5 @@ m_*
 *.task
 *.hitmap
 *.result
+*.param
 progress

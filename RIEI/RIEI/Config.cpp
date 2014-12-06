@@ -4,7 +4,6 @@
 
 Config::Config()
 {
-    angleBinNum = 7;
 }
 
 Config* Config::instance()
@@ -39,21 +38,9 @@ void Config::read(const char* fileName)
         {
             fscanf(file, "%d", &downSampleThres);
         }
-        else if (strcmp(buffer, "cluster_min_size") == 0)
-        {
-            fscanf(file, "%d", &clusterMinSize);
-        }
         else if (strcmp(buffer, "sketch_side_length") == 0)
         {
             fscanf(file, "%d", &sketchSideLength);
-        }
-        else if (strcmp(buffer, "hitmap_radius") == 0)
-        {
-            fscanf(file, "%d", &hitmapRadius);
-        }
-        else if (strcmp(buffer, "angle_bin_num") == 0)
-        {
-            fscanf(file, "%d", &angleBinNum);
         }
         else if (strcmp(buffer, "partition_num") == 0)
         {
@@ -62,6 +49,27 @@ void Config::read(const char* fileName)
         else if (strcmp(buffer, "candidate_num") == 0)
         {
             fscanf(file, "%d", &candidateNum);
+        }
+        else if (strcmp(buffer, "patch_length") == 0)
+        {
+            fscanf(file, "%d", &patchLength);
+        }
+        else if (strcmp(buffer, "shift_length") == 0)
+        {
+            fscanf(file, "%d", &shiftLength);
+        }
+        else if (strcmp(buffer, "grid_num") == 0)
+        {
+            fscanf(file, "%d", &gridNum);
+        }
+        else if (strcmp(buffer, "bin_num") == 0)
+        {
+            fscanf(file, "%d", &binNum);
+        }
+        else if (strcmp(buffer, "sh_param") == 0)
+        {
+            fscanf(file, "%s", buffer);
+            shParam.readParam(buffer);
         }
     }
     fclose(file);

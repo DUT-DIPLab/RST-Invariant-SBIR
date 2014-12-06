@@ -4,7 +4,7 @@ Sketch::Sketch(int row, int col) : _row(row), _col(col)
 {
     if (row > 0 && col > 0)
     {
-        _data = vector<vector<bool>>(row, vector<bool>(col, false));
+        _data = vector<vector<double>>(row, vector<double>(col, 0.0));
     }
 }
 
@@ -27,7 +27,7 @@ void Sketch::write(const char* fileName)
     {
         for (int x = 0; x < image->width; ++x)
         {
-            (image->imageData + y * image->widthStep)[x] = _data[y][x] ? 0 : 255;
+            (image->imageData + y * image->widthStep)[x] = (unsigned char)(_data[y][x] * 255.0);
         }
     }
     cvSaveImage(fileName, image);
@@ -38,23 +38,12 @@ void Sketch::initFromImage(IplImage* image)
 {
     _row = image->height;
     _col = image->width;
-    _data = vector<vector<bool>>(_row, vector<bool>(_col, false));
+    _data = vector<vector<double>>(_row, vector<double>(_col, 0.0));
     for (int y = 0; y < image->height; ++y)
     {
         for (int x = 0; x < image->width; ++x)
         {
-            _data[y][x] = ((unsigned char)((image->imageData + y * image->widthStep)[x])) < 128;
-        }
-    }
-}
-
-void Sketch::inverse()
-{
-    for (int y = 0; y < row(); ++y)
-    {
-        for (int x = 0; x < col(); ++x)
-        {
-            _data[y][x] = !_data[y][x];
+            _data[y][x] = ((unsigned char)((image->imageData + y * image->widthStep)[x])) / 255.0;
         }
     }
 }
@@ -91,24 +80,11 @@ int Sketch::getPositiveNum() const
     {
         for (int j = 0; j < col(); ++j)
         {
-            if (_data[i][j])
+            if (_data[i][j] > 0.5)
             {
                 ++num;
             }
         }
     }
     return num;
-}
-
-Sketch Sketch::crop(int top, int left, int height, int width) const
-{
-    Sketch cropped(height, width);
-    for (int i = 0; i < height; ++i)
-    {
-        for (int j = 0; j < width; ++j)
-        {
-            cropped[i][j] = _data[i + top][j + left];
-        }
-    }
-    return cropped;
 }

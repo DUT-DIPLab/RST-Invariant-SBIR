@@ -18,9 +18,9 @@ vector<Sketch> Decomposer::decompose(const Sketch& sketch) const
     Config* config = Config::instance();
     int radius = config->sketchSideLength >> 1;
     double halfTheta = PI / config->partitionNum;
-    int halfWidth = (int)(radius * sin(halfTheta));
-    int width = (halfWidth << 1) + 1;
-    int height = (int)(radius * cos(halfTheta));
+    int halfWidth = ((int)(radius * sin(halfTheta)) + 9) / 10 * 10;
+    int width = halfWidth << 1;
+    int height = ((int)(radius * cos(halfTheta)) + 19) / 20 * 20;
     int center = radius;
     vector<Sketch> parts(8, Sketch(height, width));
     Preprocesser processer;
@@ -28,7 +28,7 @@ vector<Sketch> Decomposer::decompose(const Sketch& sketch) const
     {
         for (int y = 0; y < height; ++y)
         {
-            for (int x = -halfWidth; x <= halfWidth; ++x)
+            for (int x = -halfWidth; x < halfWidth; ++x)
             {
                 int oy = center - y;
                 int ox = center + x;
@@ -36,10 +36,9 @@ vector<Sketch> Decomposer::decompose(const Sketch& sketch) const
                 double ang = atan2(y, x) - (k << 1) * halfTheta;
                 double ry = center - rad * sin(ang);
                 double rx = center + rad * cos(ang);
-                parts[k][height - y - 1][x + halfWidth] = sketch.bilinearInterpolate(ry, rx) > 0.1;
+                parts[k][height - y - 1][x + halfWidth] = sketch.bilinearInterpolate(ry, rx);
             }
         }
-        processer.sketchThinning(parts[k]);
     }
     return parts;
 }

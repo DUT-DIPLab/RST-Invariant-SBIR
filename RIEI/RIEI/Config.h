@@ -1,5 +1,7 @@
 #pragma once
 
+#include "ShParam.h"
+
 struct Config
 {
 public:
@@ -12,12 +14,14 @@ public:
     int cannyHigh;
     double downSampleRatio;
     int downSampleThres;
-    int clusterMinSize;
     int sketchSideLength;
-    int hitmapRadius;
-    int angleBinNum;
     int partitionNum;
     int candidateNum;
+    int patchLength;
+    int shiftLength;
+    int gridNum;
+    int binNum;
+    ShParam shParam;
 
     int radius;
     int partWidth;
