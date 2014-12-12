@@ -25,6 +25,9 @@ IplImage* Preprocesser::generateEdges(const char* filePath)
     IplImage* image = cvLoadImage(filePath, CV_LOAD_IMAGE_GRAYSCALE);
     Sketch edge;
     IplImage* canny = nullptr;
+    int height = image->height;
+    int width = image->width;
+    double ratio = 1.0;
     while (true)
     {
         canny = cvCreateImage(cvGetSize(image), IPL_DEPTH_8U, 1);
@@ -36,12 +39,13 @@ IplImage* Preprocesser::generateEdges(const char* filePath)
             break;
         }
         cvReleaseImage(&canny);
-        int newWidth = (int)(image->width * config->downSampleRatio);
-        int newHeight = (int)(image->height * config->downSampleRatio);
+        ratio *= config->downSampleRatio;
+        int newWidth = (int)(image->width * ratio);
+        int newHeight = (int)(image->height * ratio);
         IplImage* resize = cvCreateImage(cvSize(newWidth, newHeight), IPL_DEPTH_8U, 1);
         cvResize(image, resize, CV_INTER_CUBIC);
-        cvReleaseImage(&image);
-        image = resize;
+        cvResize(resize, image, CV_INTER_CUBIC);
+        cvReleaseImage(&resize);
     }
     return canny;
 }

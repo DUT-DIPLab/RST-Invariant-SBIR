@@ -32,8 +32,6 @@ private:
     vector<vector<int>> _mode;
 
     vector<vector<double>> _omega;
-
-    int _hammingDist[256];
 };
 
 inline int ShParam::dimNum() const
@@ -77,7 +75,14 @@ inline int ShParam::hammingDist(vector<char>& a, vector<char>& b)
     int dist = 0;
     for (int i = 0; i < len; ++i)
     {
-        dist += _hammingDist[(unsigned char)(a[i] ^ b[i])];
+        char c = a[i] ^ b[i];
+        for (int j = 0; j < 8; ++j)
+        {
+            if (c & (1 << j))
+            {
+                ++dist;
+            }
+        }
     }
     return dist;
 }

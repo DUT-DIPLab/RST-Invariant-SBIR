@@ -111,13 +111,15 @@ vector<vector<char>> Hashing::read(const char* fileName)
     int index = 0;
     vector<vector<char>> bits;
     ifstream fin;
-    fin.open(fileName, ios::in | ios::binary);
+    int temp;
+    fin.open(fileName, ios::in);
     while (!fin.eof())
     {
         bits.push_back(vector<char>(byteNum));
         for (int i = 0; i < byteNum; ++i)
         {
-            fin >> bits[index][i];
+            fin >> temp;
+            bits[index][i] = (char)temp;
         }
         ++index;
     }
@@ -128,12 +130,12 @@ vector<vector<char>> Hashing::read(const char* fileName)
 void Hashing::write(const char* fileName, vector<vector<char>>& bits)
 {
     ofstream fout;
-    fout.open(fileName, ios::out | ios::binary);
+    fout.open(fileName, ios::out);
     for (auto bit : bits)
     {
         for (auto byte : bit)
         {
-            fout << byte;
+            fout << (int)byte << ' ';
         }
     }
     fout.close();

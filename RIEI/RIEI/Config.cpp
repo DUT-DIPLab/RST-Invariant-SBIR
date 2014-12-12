@@ -71,6 +71,22 @@ void Config::read(const char* fileName)
             fscanf(file, "%s", buffer);
             shParam.readParam(buffer);
         }
+        else if (strcmp(buffer, "flip_cost") == 0)
+        {
+            fscanf(file, "%lf", &flipCost);
+        }
+        else if (strcmp(buffer, "rotate_cost") == 0)
+        {
+            fscanf(file, "%lf", &rotateCost);
+        }
+        else if (strcmp(buffer, "variance_cost") == 0)
+        {
+            fscanf(file, "%lf", &varianceCost);
+        }
+        else if (strcmp(buffer, "shift_cost") == 0)
+        {
+            fscanf(file, "%lf", &shiftCost);
+        }
     }
     fclose(file);
 }

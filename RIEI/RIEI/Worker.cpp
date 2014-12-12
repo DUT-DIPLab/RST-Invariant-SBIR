@@ -36,14 +36,14 @@ Worker::Progress Worker::loadProgress()
     return progress;
 }
 
-void Worker::work(const char* filePath, int threadNum)
+double Worker::work(const char* filePath, int threadNum)
 {
     Task task;
     task.read(filePath);
-    work(task, threadNum);
+    return work(task, threadNum);
 }
 
-void Worker::work(Task& task, int threadNum)
+double Worker::work(Task& task, int threadNum)
 {
     Config* config = Config::instance();
     int parNum = config->partitionNum;
@@ -143,6 +143,8 @@ void Worker::work(Task& task, int threadNum)
     {
         system("mkdir m_results");
         _deltNum = 0;
+        _hashes = vector<vector<vector<vector<char>>>>(_task->datasetNum, vector<vector<vector<char>>>(parNum));
+        _readSync = 0;
         for (int i = 1; i < threadNum; ++i)
         {
             CreateThread(0, 0, queryEntry, this, 0, 0);
@@ -155,6 +157,59 @@ void Worker::work(Task& task, int threadNum)
         saveProgress(PROGRESS_QUERY);
         printf("\n");
     }
+
+    printf("Evaluate: \n");
+    system("mkdir m_evaluate");
+    char buffer[1024];
+    vector<double> precision(100, 0.0);
+    for (int i = 0; i < _task->queryNum; ++i)
+    {
+        char cat[1024];
+        strcpy(cat, _task->queries[i].name.c_str());
+        for (int j = (int)_task->queries[i].name.length() - 1; j >= 0; --j)
+        {
+            if (cat[j] == '_')
+            {
+                cat[j] = 0;
+                break;
+            }
+        }
+        sprintf(buffer, "m_results/%s.result", _task->queries[i].name.c_str());
+        FILE* file = fopen(buffer, "r");
+        int match = 0;
+        for (int k = 0; k < 100; ++k)
+        {
+            fscanf(file, "%s", buffer);
+            int len = (int)strlen(buffer);
+            for (int j = len - 1; j >= 0; --j)
+            {
+                if (buffer[j] == '_')
+                {
+                    buffer[j] = 0;
+                    break;
+                }
+            }
+            if (strcmp(cat, buffer) == 0)
+            {
+                ++match;
+            }
+            precision[k] += (double)match / (k + 1);
+        }
+        fclose(file);
+    }
+    for (int i = 0; i < 100; ++i)
+    {
+        precision[i] /= _task->queryNum;
+    }
+    sprintf(buffer, "m_evaluate/precision_%.6lf.txt", config->varianceCost);
+    FILE* file = fopen(buffer, "w");
+    for (int i = 0; i < 100; ++i)
+    {
+        fprintf(file, "%.6lf\n", precision[i]);
+    }
+    fclose(file);
+    printf("Precision: %.6lf\n", precision[0]);
+    return precision[0];
 }
 
 
@@ -186,11 +241,7 @@ void Worker::edgeDetect()
         len = _task->queryNum;
         for (int i = shift; i < len; i += _threadNum)
         {
-            /*Sketch sketch = preprocesser.cutOutSketch(_task->queries[i].path.c_str());
-            sprintf(buffer, "m_sketches/%s.jpg", _task->queries[i].name.c_str());
-            sketch.write(buffer);
-            ++_deltNum;
-            printf("\rE Thread: %d Progress: %d / %d", _threadNum, _deltNum, totalNum);*/
+            // TODO
         }
     }
     else
@@ -289,7 +340,7 @@ void Worker::index()
 {
     Config* config = Config::instance();
     int len = _task->datasetNum;
-    char buffer[1024];
+    //char buffer[1024];
     WaitForSingleObject(_shiftMutex, INFINITE);
     int shift = _shift++;
     ReleaseMutex(_shiftMutex);
@@ -319,16 +370,30 @@ void Worker::query()
     int shift = _shift++;
     ReleaseMutex(_shiftMutex);
     Hashing hashing;
-    vector<vector<vector<vector<char>>>> hashes(_task->datasetNum, vector<vector<vector<char>>>(parNum));
-    for (int i = 0; i < _task->datasetNum; ++i)
+    for (int i = shift; i < _task->datasetNum; i += _threadNum)
     {
         for (int j = 0; j < parNum; ++j)
         {
             sprintf(buffer, "m_hashes/%s_%d.hash", _task->datasets[i].name.c_str(), j);
-            hashes[i][j] = hashing.read(buffer);
+            _hashes[i][j] = hashing.read(buffer);
         }
     }
+    WaitForSingleObject(_shiftMutex, INFINITE);
+    ++_readSync;
+    ReleaseMutex(_shiftMutex);
+    while (true)
+    {
+        WaitForSingleObject(_shiftMutex, INFINITE);
+        if (_readSync == _threadNum)
+        {
+            ReleaseMutex(_shiftMutex);
+            break;
+        }
+        ReleaseMutex(_shiftMutex);
+        Sleep(200);
+    }
     Decomposer decomposer;
+    vector<double> varDist(parNum);
     for (int i = shift; i < len; i += _threadNum)
     {
         sprintf(buffer, "m_sketches/%s.jpg", _task->queries[i].name.c_str());
@@ -342,12 +407,63 @@ void Worker::query()
         vector<Score> scores;
         for (int j = 0; j < _task->datasetNum; ++j)
         {
-            int dist = 0;
-            for (int k = 0; k < parNum; ++k)
+            vector<vector<double>> dists(parNum, vector<double>(parNum, 0.0));
+            for (int p = 0; p < parNum; ++p)
             {
-                for (int l = 0; l < queryHash[k].size(); ++l)
+                for (int q = 0; q < parNum; ++q)
                 {
-                    dist += config->shParam.bitNum() - config->shParam.hammingDist(queryHash[k][l], hashes[j][k][l]);
+                    for (int k = 0; k < queryHash[p].size(); ++k)
+                    {
+                        dists[p][q] += config->shParam.hammingDist(queryHash[p][k], _hashes[j][q][k]);
+                    }
+                    dists[p][q] /= config->shParam.bitNum() * queryHash[p].size();
+                }
+            }
+            double dist = 1e100;
+            for (int s = 0; s < parNum; ++s)
+            {
+                double tempDist = config->rotateCost * min(s, parNum - s);
+                double sum = 0.0;
+                for (int k = 0; k < parNum; ++k)
+                {
+                    varDist[k] = dists[k][(parNum + s + k) % parNum];
+                    sum += varDist[k];
+                }
+                tempDist += sum;
+                double mean = sum / parNum;
+                double variance = 0.0;
+                for (int k = 0; k < parNum; ++k)
+                {
+                    variance += (varDist[k] - mean) * (varDist[k] - mean);
+                }
+                variance /= parNum - 1;
+                tempDist += config->varianceCost * variance;
+                if (tempDist < dist)
+                {
+                    dist = tempDist;
+                }
+            }
+            for (int s = 0; s < parNum; ++s)
+            {
+                double tempDist = config->flipCost + config->rotateCost * min(s, parNum - s);
+                double sum = 0.0;
+                for (int k = 0; k < parNum; ++k)
+                {
+                    varDist[k] = dists[k][(parNum + s - k) % parNum];
+                    sum += varDist[k];
+                }
+                tempDist += sum;
+                double mean = sum / parNum;
+                double variance = 0.0;
+                for (int k = 0; k < parNum; ++k)
+                {
+                    variance += (varDist[k] - mean) * (varDist[k] - mean);
+                }
+                variance /= parNum - 1;
+                tempDist += config->varianceCost * variance;
+                if (tempDist < dist)
+                {
+                    dist = tempDist;
                 }
             }
             Score score;
@@ -358,9 +474,9 @@ void Worker::query()
         sort(scores.begin(), scores.end());
         sprintf(buffer, "m_results/%s.result", _task->queries[i].name.c_str());
         FILE* file = fopen(buffer, "w");
-        for (int i = 0; i < scores.size(); ++i)
+        for (int j = 0; j < scores.size(); ++j)
         {
-            fprintf(file, "%s\n", _task->datasets[scores[i].index.id].name);
+            fprintf(file, "%s\n", _task->datasets[scores[j].index.id].name.c_str());
         }
         fclose(file);
         ++_deltNum;

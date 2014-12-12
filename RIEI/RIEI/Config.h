@@ -23,6 +23,11 @@ public:
     int binNum;
     ShParam shParam;
 
+    double flipCost;
+    double rotateCost;
+    double varianceCost;
+    double shiftCost;
+
     int radius;
     int partWidth;
     int partHeight;

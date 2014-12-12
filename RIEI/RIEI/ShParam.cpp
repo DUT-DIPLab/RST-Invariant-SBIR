@@ -6,17 +6,6 @@ const double PI = acos(-1.0);
 
 ShParam::ShParam()
 {
-    for (int i = 0; i < 256; ++i)
-    {
-        _hammingDist[i] = 0;
-        for (int j = 0; j < 8; ++j)
-        {
-            if (i & (1 << j))
-            {
-                ++_hammingDist[i];
-            }
-        }
-    }
 }
 
 ShParam::~ShParam()

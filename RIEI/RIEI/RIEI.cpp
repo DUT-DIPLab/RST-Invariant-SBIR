@@ -1,6 +1,8 @@
 #include "Config.h"
 #include "Worker.h"
 
+#include <cstdio>
+#include <cstdlib>
 #include "Hashing.h"
 
 int main(int argc, char* argv[])
@@ -12,10 +14,10 @@ int main(int argc, char* argv[])
 #else
     int threadNum = 6;
 #endif
-    Hashing hashing;
-    Sketch sketch("m_parts/anklet_0_0.jpg");
-    auto bits = hashing.hashing(sketch);
-    //worker.work("PI100.task", threadNum);
+    Worker worker;
+    config->flipCost = 0.0;
+    config->rotateCost = 0.0;
+    worker.work("PI100.task", threadNum);
     //worker.work("PI100_Small_1.task", threadNum);
     //worker.work("PI100_Small_2.task", threadNum);
     //worker.work("test.task", threadNum);

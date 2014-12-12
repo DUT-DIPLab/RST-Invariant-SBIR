@@ -27,7 +27,7 @@ struct Score
     double score;
     bool operator <(const Score& s) const
     {
-        return score > s.score;
+        return score < s.score;
     }
 };
 

@@ -19,17 +19,20 @@ public:
         PROGRESS_DECOMPOSE,
         PROGRESS_HASHING,
         PROGRESS_INDEX,
-        PROGRESS_QUERY
+        PROGRESS_QUERY,
+        PROGRESS_EVALUATE,
     };
 
     void saveProgress(Progress progress);
     Progress loadProgress();
 
-    void work(const char* filePath, int threadNum = 1);
-    void work(Task& task, int threadNum = 1);
+    double work(const char* filePath, int threadNum = 1);
+    double work(Task& task, int threadNum = 1);
 
 private:
     Task* _task;
+    vector<vector<vector<vector<char>>>> _hashes;
+    int _readSync;
 
     int _threadNum;
     int _shift;
