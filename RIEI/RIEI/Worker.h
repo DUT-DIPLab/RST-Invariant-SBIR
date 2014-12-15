@@ -18,7 +18,6 @@ public:
         PROGRESS_EDGE,
         PROGRESS_DECOMPOSE,
         PROGRESS_HASHING,
-        PROGRESS_INDEX,
         PROGRESS_QUERY,
         PROGRESS_EVALUATE,
     };
@@ -42,13 +41,11 @@ private:
     static DWORD WINAPI edgeDetectEntry(LPVOID self);
     static DWORD WINAPI decomposeEntry(LPVOID self);
     static DWORD WINAPI hashingEntry(LPVOID self);
-    static DWORD WINAPI indexEntry(LPVOID self);
     static DWORD WINAPI queryEntry(LPVOID self);
 
     void edgeDetect();
     void decompose();
     void hashing();
-    void index();
     void query();
 };
 

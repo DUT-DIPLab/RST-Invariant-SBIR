@@ -11,7 +11,7 @@ public:
 
     Sketch preprocess(const char* filePath);
 
-    IplImage* generateEdges(const char* filePath);
-    Sketch cutOutSketch(IplImage* canny);
+    Sketch generateEdges(const char* filePath);
+    Sketch cutOutSketch(const Sketch&& edge);
 };
 

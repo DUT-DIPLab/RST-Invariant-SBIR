@@ -112,32 +112,6 @@ double Worker::work(Task& task, int threadNum)
         printf("\n");
     }
 
-    /*printf("Generate Index: \n");
-    if (progress < PROGRESS_INDEX)
-    {
-        system("mkdir m_index");
-        _deltNum = 0;
-        _index = vector<vector<vector<vector<Index>>>>(config->angleBinNum, vector<vector<vector<Index>>>(
-                                                       config->partHeight, vector<vector<Index>>(
-                                                       config->partWidth, vector<Index>())));
-        for (int i = 1; i < threadNum; ++i)
-        {
-            CreateThread(0, 0, indexEntry, this, 0, 0);
-        }
-        index();
-        while (_shift)
-        {
-            Sleep(100);
-        }
-        saveProgress(PROGRESS_INDEX);
-        printf("\n");
-        writeIndex();
-    }
-    else
-    {
-        readIndex();
-    }*/
-
     printf("Query: \n");
     if (progress < PROGRESS_QUERY)
     {
@@ -324,30 +298,6 @@ void Worker::hashing()
         }
         ++_deltNum;
         printf("\rH Thread: %d Progress: %d / %d", _threadNum, _deltNum, len);
-    }
-    WaitForSingleObject(_shiftMutex, INFINITE);
-    --_shift;
-    ReleaseMutex(_shiftMutex);
-}
-
-DWORD WINAPI Worker::indexEntry(LPVOID self)
-{
-    reinterpret_cast<Worker*>(self)->index();
-    return 0;
-}
-
-void Worker::index()
-{
-    Config* config = Config::instance();
-    int len = _task->datasetNum;
-    //char buffer[1024];
-    WaitForSingleObject(_shiftMutex, INFINITE);
-    int shift = _shift++;
-    ReleaseMutex(_shiftMutex);
-    for (int i = shift; i < len; i += _threadNum)
-    {
-        ++_deltNum;
-        printf("\rI Thread: %d Progress: %d / %d", _threadNum, _deltNum, len);
     }
     WaitForSingleObject(_shiftMutex, INFINITE);
     --_shift;
