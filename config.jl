@@ -4,8 +4,6 @@ type Config
     taskPath::ASCIIString
     tempPath::ASCIIString
 
-    useCannyInData::Bool
-    useCannyInQuery::Bool
     cannyLow::Int32
     cannyHigh::Int32
     downSampleRatio::Float32
@@ -34,8 +32,6 @@ type Config
         end
         mkdir(tempPath)
         
-        useCannyInData = true
-        useCannyInQuery = false
         cannyLow = 60
         cannyHigh = 180
         downSampleRatio = 0.9
@@ -54,7 +50,6 @@ type Config
         shiftCost = 0.1
         
         new(taskPath, tempPath,
-            useCannyInData, useCannyInQuery, 
             cannyLow, cannyHigh, downSampleRatio, downSampleThres,
             sketchSideLength, partitionNum, candidateNum, 
             patchLength, shiftLength,
@@ -63,5 +58,6 @@ type Config
     end
 end
 
+println("Generating default configuration...")
 config = Config()
 

@@ -5,3 +5,7 @@
 # Temporary files
 _temp
 *~
+
+# Demo files
+demo
+demo.task
