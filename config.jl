@@ -3,21 +3,16 @@
 type Config
     taskPath::ASCIIString
     tempPath::ASCIIString
-
-    cannyLow::Int32
-    cannyHigh::Int32
-    downSampleRatio::Float32
-    downSampleThres::Int32
     
-    sketchSideLenth::Int32
-    partitionNum::Int32
-    candidateNum::Int32
+    sketchSideLenth::Int
+    partitionNum::Int
+    candidateNum::Int
     
-    patchLength::Int32
-    shiftLength::Int32
+    patchLength::Int
+    shiftLength::Int
     
-    gridNum::Int32
-    binNum::Int32
+    gridNum::Int
+    binNum::Int
     
     flipCost::Float32
     rotateCost::Float32
@@ -27,21 +22,17 @@ type Config
     function Config()
         taskPath = "demo.task"
         tempPath = "_temp/"
-        if ispath(tempPath)
-            rm(tempPath, recursive=true)
+        if !ispath(tempPath)
+            mkdir(tempPath)
         end
-        mkdir(tempPath)
         
-        cannyLow = 60
-        cannyHigh = 180
-        downSampleRatio = 0.9
-        downSampleThres = 10000
-        
-        sketchSideLength = 100
+        sketchSideLength = 300
         partitionNum = 8
         candidateNum = 1000
+        
         patchLength = 40
         shiftLength = 10
+        
         gridNum = 3
         binNum = 8
         
@@ -50,7 +41,6 @@ type Config
         shiftCost = 0.1
         
         new(taskPath, tempPath,
-            cannyLow, cannyHigh, downSampleRatio, downSampleThres,
             sketchSideLength, partitionNum, candidateNum, 
             patchLength, shiftLength,
             gridNum, binNum,

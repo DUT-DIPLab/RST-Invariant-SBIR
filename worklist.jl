@@ -20,42 +20,41 @@
 #     query1 ./query.png
 
 type Worklist
-    useCannyInData::Bool
+    edgeDetectInData::Bool
     dataName::Array{ASCIIString}
     dataPath::Array{ASCIIString}
-    useCannyInQuery::Bool
+    edgeDetectInQuery::Bool
     queryName::Array{ASCIIString}
     queryPath::Array{ASCIIString}
     
     function Worklist(taskPath)
-        useCannyInData = false
-        useCannyInQuery = false
+        edgeDetectInData = false
         dataName = ASCIIString[]
         dataPath = ASCIIString[]
+        edgeDetectInQuery = false
         queryName = ASCIIString[]
         queryPath = ASCIIString[]
         open(taskPath) do fid
             num, canny = map((s)->parse(Int, s), split(readline(fid)))
-            useCannyInData = convert(Bool, canny)
+            edgeDetectInData = convert(Bool, canny)
             for i in 1:num
                 name, path = convert(Array{ASCIIString}, split(readline(fid)))
                 push!(dataName, name)
                 push!(dataPath, path)
             end
             num, canny = map((s)->parse(Int, s), split(readline(fid)))
-            useCannyInQuery = convert(Bool, canny)
+            edgeDetectInQuery = convert(Bool, canny)
             for i in 1:num
                 name, path = convert(Array{ASCIIString}, split(readline(fid)))
                 push!(queryName, name)
                 push!(queryPath, path)
             end
         end
-        new(useCannyInData, dataName, dataPath,
-            useCannyInQuery, queryName, queryPath)
+        new(edgeDetectInData, dataName, dataPath,
+            edgeDetectInQuery, queryName, queryPath)
     end
 end
 
 println("Reading worklist...")
 worklist = Worklist(config.taskPath)
-println(worklist)
 
