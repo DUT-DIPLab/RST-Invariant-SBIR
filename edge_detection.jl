@@ -1,4 +1,5 @@
 using Images
+using canny
 
 function interp_bilinear{T <: Union(Real, Integer)}(dat::Array{T, 2}, x::Float64, y::Float64, 
                                                     x1::Int, x2::Int, y1::Int, y2::Int)
@@ -47,7 +48,7 @@ function edgeDetect(detect, ids, paths)
     if !ispath(tempPath)
         mkdir(tempPath)
     end
-    @parallel for i = 1:length(ids)
+    for i = 1:length(ids)
         id = ids[i]
         path = paths[i]
         savePath = string(tempPath, id, ".jpg")
@@ -56,7 +57,8 @@ function edgeDetect(detect, ids, paths)
         img = data(raw(img))
         img = imresize(img, config.sketchSideLenth, config.sketchSideLenth)
         if detect
-            # TODO
+            img = cannyEdge(img, lowThres=0.01, highThres=0.3)
+            img = convert(Array{Float32}, img)
         end
         img = grayim(img)
         imwrite(img, savePath)

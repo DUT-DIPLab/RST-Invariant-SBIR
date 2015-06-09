@@ -26,7 +26,7 @@ type Config
             mkdir(tempPath)
         end
         
-        sketchSideLength = 300
+        sketchSideLength = 200
         partitionNum = 8
         candidateNum = 1000
         
