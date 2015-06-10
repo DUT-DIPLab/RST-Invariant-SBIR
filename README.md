@@ -1,14 +1,12 @@
 # Introduction
 
-The repository is the codes for __RST-Invariant Sketch Retrieval Based On Circular Description__.
+The repository is the codes for __RST-Invariant Sketch Retrieval Based On Circular Description__. Note that this is __NOT__ the real implementation of the paper and lacks operations such as pre-processing.
 
 # Installation
 
 ## Install Julia
 
-Just follow the instructions in [julialang.org](http://julialang.org/downloads/). _Julia + Juno IDE bundles_ is recommended for people who hates command lines.
-
-For comrades that live inside the great firewall, type `git config --global url."https://".insteadOf git://` in command line before further operations.
+Just follow the instructions in [julialang.org](http://julialang.org/downloads/). For comrades that live inside the great firewall, type `git config --global url."https://".insteadOf git://` in command line before further operations.
 
 # Usage
 
