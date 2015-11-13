@@ -158,3 +158,9 @@ $RECYCLE.BIN/
 # Images
 *.jpg
 *.png
+
+# Intermediate Files
+*.hash
+*.txt
+*.mat
+*.param
