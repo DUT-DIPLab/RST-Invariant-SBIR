@@ -1,6 +1,30 @@
 # Introduction
 
-The repository is the codes for __RST-Invariant Sketch Retrieval Based On Circular Description__.
+The repository is the codes for [__RST-Invariant Sketch Retrieval Based On Circular Description__](https://github.com/DUT-DIPLab/RST-Invariant-SBIR/files/388/388-ZWBi-141.pdf).
+
+# Abstract
+
+The proposed method utilizes saliency map
+and boundary information to detect salient contours for each
+image, then uses patch hashing to eliminate the deformations
+and redundancies of sketches. To achieve rotational invariance,
+we describe salient contours using circular description.
+The experiment results on two public datasets demonstrated
+that the proposed method outperforms the state-of-the-arts in
+both natural and product images, and handles rotation, scaling
+and translation transformations.
+
+# Citation
+
+```
+@inproceedings{zhao2015rst,
+  title={RST-Invariant Sketch Retrieval Based On Circular Description},
+  author={Zhao Hanguang and Kong Xiangwei and Fu Haiyan and Zhang Yujia},
+  booktitle={Image Processing (ICIP), 2015 IEEE International Conference on},
+  year={2015},
+  organization={IEEE}
+}
+```
 
 # Performance
 
