@@ -22,7 +22,7 @@ vector<Sketch> Decomposer::decompose(const Sketch& sketch) const
     int width = halfWidth << 1;
     int height = ((int)(radius * cos(halfTheta)) + 19) / 20 * 20;
     int center = radius;
-    vector<Sketch> parts(8, Sketch(height, width));
+    vector<Sketch> parts(config->partitionNum, Sketch(height, width));
     Preprocesser processer;
     for (int k = 0; k < config->partitionNum; ++k)
     {
