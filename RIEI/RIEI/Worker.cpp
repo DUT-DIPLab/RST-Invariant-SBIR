@@ -6,6 +6,7 @@
 #include "Decomposer.h"
 #include "Hashing.h"
 #include "Indexing.h"
+#include "FlowMatching.h"
 #include "Worker.h"
 
 Worker::Worker()
@@ -344,6 +345,7 @@ void Worker::query()
     }
     Decomposer decomposer;
     vector<double> varDist(parNum);
+    FlowMatching flowMatching;
     for (int i = shift; i < len; i += _threadNum)
     {
         sprintf(buffer, "m_sketches/%s.jpg", _task->queries[i].name.c_str());
@@ -416,6 +418,7 @@ void Worker::query()
                     dist = tempDist;
                 }
             }
+            //double dist = flowMatching.getMatchingScore(dists);
             Score score;
             score.index.id = j;
             score.score = dist;

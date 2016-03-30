@@ -48,6 +48,9 @@
     <ClCompile Include="Filter.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="FlowMatching.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Sketch.h">
@@ -78,6 +81,9 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="Filter.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="FlowMatching.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

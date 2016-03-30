@@ -159,6 +159,9 @@ $RECYCLE.BIN/
 *.jpg
 *.png
 
+# DLLs
+*.dll
+
 # Intermediate Files
 *.hash
 *.txt
